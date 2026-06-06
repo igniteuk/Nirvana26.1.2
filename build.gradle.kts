@@ -1,67 +1,52 @@
 plugins {
-    id("com.possible-triangle.core")
-    id("com.possible-triangle.common") apply false
-    id("com.possible-triangle.neoforge") apply false
-    id("com.possible-triangle.fabric") apply false
+    // Standard vanilla gradle helper for multi-project management
+    id("architectury-plugin") version "3.4-SNAPSHOT" apply false
+    id("dev.architectury.loom") version "1.7-SNAPSHOT" apply false
 }
 
 subprojects {
-    apply(plugin = "com.possible-triangle.core")
-
-    repositories {
-        // TODO remove
-        maven {
-            url = uri("https://maven.tterrag.com/")
-            content {
-                includeGroup("com.tterrag.registrate")
-            }
-        }
-
-        maven {
-            url = uri("https://maven.ithundxr.dev/snapshots")
-            content {
-                includeGroup("com.tterrag.registrate")
-            }
-        }
-
-        maven {
-            url = uri("https://maven.blamejared.com/")
-            content {
-                includeGroup("mezz.jei")
-            }
-        }
-
-        maven {
-            url = uri("https://jitpack.io")
-            content {
-                includeGroup("com.github.llamalad7.mixinextras")
-            }
-        }
-
-        maven {
-            url = uri("https://raw.githubusercontent.com/Fuzss/modresources/main/maven/")
-            content {
-                includeGroup("net.minecraftforge")
-                includeGroup("fuzs.forgeconfigapiport")
-            }
-        }
-
-        nexus {
-            content {
-                includeGroup("dev.galena")
-                includeGroup("com.possible-triangle")
-                includeGroup("com.tterrag.registrate_fabric")
-                includeGroup("io.github.fabricators_of_create.Porting-Lib")
-            }
-        }
+    tasks.withType<JavaCompile>().configureEach {
+        options.encoding = "UTF-8"
+        // Target Java 25 for Minecraft 26.1.2+
+        options.release.set(25)
     }
 
-    upload {
+    java {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(25))
+        withSourcesJar()
+    }
+
+    repositories {
+        mavenCentral()
+        
+        // Mojang's official library repository
         maven {
-            nexus()
+            name = "Mojang"
+            url = uri("https://libraries.minecraft.net/")
+        }
+
+        // Necessary for NeoForge and modern build mappings
+        maven {
+            name = "NeoForge"
+            url = uri("https://maven.neoforged.net/releases/")
+        }
+
+        // Necessary for Fabric components if compiling the Fabric subproject
+        maven {
+            name = "Fabric"
+            url = uri("https://maven.fabricmc.net/")
+        }
+
+        // Kept from original script for dependencies like JEI
+        maven {
+            url = uri("https://maven.blamejared.com/")
+            content { includeGroup("mezz.jei") }
+        }
+
+        // Kept for MixinExtras which is heavily used in 26.x ecosystems
+        maven {
+            url = uri("https://jitpack.io")
+            content { includeGroup("com.github.llamalad7.mixinextras") }
         }
     }
 }
-
-enableSonarQube()
-enableSpotless()
